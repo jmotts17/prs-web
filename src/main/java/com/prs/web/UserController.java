@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.prs.business.User;
 import com.prs.db.UserRepo;
@@ -53,6 +55,28 @@ public class UserController {
 			System.out.println("Error - user not found for id " + id);
 		}
 		return u.get();
+	}
+	
+	// Get Mapping - Get User by Username and Password
+	@GetMapping("/login")
+	public Optional<User> getByUserNameAndPassword(@RequestParam String userName, @RequestParam String password) {
+		Optional<User> u = userRepo.findByUserNameAndPassword(userName, password);
+		if(u.isPresent()) {
+			return u;
+		} else {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+		}		
+	}
+	
+	// Post Mapping - Get User by Username and Password
+	@PostMapping("/login")
+	public Optional<User> getByUserNameAndPassword(@RequestBody User u) {
+		Optional<User> user = userRepo.findByUserNameAndPassword(u.getUserName(), u.getPassword());
+		if(user.isPresent()) {
+			return user;
+		} else {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+		}		
 	}
 	
 }
