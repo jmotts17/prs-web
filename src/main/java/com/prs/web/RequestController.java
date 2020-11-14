@@ -1,5 +1,7 @@
 package com.prs.web;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,4 +56,41 @@ public class RequestController {
 		}
 		return r.get();
 	}
+	
+	// Submit for review
+	@PutMapping("/submit-review")
+	public Request submitRequest(@RequestBody Request r) {
+		if(r.getTotal() >= 50) {
+			r.setStatus("Review");
+		} else {
+			r.setStatus("Approved");
+		}
+		r.setSubmittedDate(LocalDateTime.now());
+		r = requestRepo.save(r);
+		
+		return r;
+	}
+	
+	// Show requests in review status and not assigned to logged in user
+	@GetMapping("/list-review/{id}")
+	public List<Request> getAllReviewRequests(@PathVariable int id) {
+		return requestRepo.findByUserIdNotAndStatus(id, "Review");		
+	}
+	
+	// Approve a request
+	@PutMapping("/approve")
+	public Request approveRequest(@RequestBody Request r) {
+		r.setStatus("Approved");
+		r = requestRepo.save(r);
+		return r;
+	}
+	
+	// Reject a request
+	@PutMapping("/reject")
+	public Request rejectRequest(@RequestBody Request r) {
+		r.setStatus("Rejected");
+		r = requestRepo.save(r);
+		return r;
+	}
+	
 }

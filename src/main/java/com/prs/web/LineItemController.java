@@ -17,33 +17,33 @@ public class LineItemController {
 	@Autowired
 	private LineItemRepo lineItemRepo;
 	
-	// Get all lineitems
+	// Get all LineItems
 	@GetMapping("/")
 	public List<LineItem> getAll() {
 		return lineItemRepo.findAll();
 	}
 	
-	// Get a lineitem by id
+	// Get a LineItem by id
 	@GetMapping("/{id}")
 	public Optional<LineItem> getById(@PathVariable int id) {
 		return lineItemRepo.findById(id);
 	}
 	
-	// Add a lineitem
+	// Add a LineItem
 	@PostMapping("/")
 	public LineItem addLineItem(@RequestBody LineItem l) {
 		l = lineItemRepo.save(l);
 		return l;
 	}
 	
-	// Update a lineitem
+	// Update a LineItem
 	@PutMapping("/")
 	public LineItem updateLineItem(@RequestBody LineItem l) {
 		l = lineItemRepo.save(l);
 		return l;
 	}
 	
-	// Delete a lineitem by id
+	// Delete a LineItem by id
 	@DeleteMapping("{id}")
 	public LineItem deleteLineItem(@PathVariable int id) {
 		Optional<LineItem> l = lineItemRepo.findById(id);
@@ -53,5 +53,11 @@ public class LineItemController {
 			System.out.println("Error - line item not found for id " + id);
 		}
 		return l.get();
+	}
+	
+	// Get all LineItems by Request ID
+	@GetMapping("/lines-for-or/{id}")
+	public List<LineItem> getAllLineItemsByRequestId(@PathVariable int id) {
+		return lineItemRepo.findByRequestId(id);
 	}
 }
