@@ -11,14 +11,21 @@ import com.prs.business.Request;
 import com.prs.business.Product;
 import com.prs.db.LineItemRepo;
 import com.prs.db.RequestRepo;
+import com.prs.db.ProductRepo;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/lineitems")
+@RequestMapping("/line-items")
 public class LineItemController {
 	
 	@Autowired
 	private LineItemRepo lineItemRepo;
+	
+	@Autowired
+	private RequestRepo requestRepo;
+	
+	@Autowired
+	private ProductRepo productRepo;
 	
 	// Get all LineItems
 	@GetMapping("/")
@@ -35,8 +42,12 @@ public class LineItemController {
 	// Add a LineItem
 	@PostMapping("/")
 	public LineItem addLineItem(@RequestBody LineItem l) {
+		Optional<Request> r = requestRepo.findById(l.getRequest().getId());
+		Optional<Product> p = productRepo.findById(l.getProduct().getId());
+		l.setRequest(r.get());
+		l.setProduct(p.get());
 		l = lineItemRepo.save(l);
-		recalculateTotal(l.getId());
+		recalculateTotal(l.getRequest().getId());
 		return l;
 	}
 	
@@ -44,7 +55,7 @@ public class LineItemController {
 	@PutMapping("/")
 	public LineItem updateLineItem(@RequestBody LineItem l) {
 		l = lineItemRepo.save(l);
-		recalculateTotal(l.getId());
+		recalculateTotal(l.getRequest().getId());
 		return l;
 	}
 	
@@ -63,28 +74,23 @@ public class LineItemController {
 	}
 	
 	// Get all LineItems by Request ID
-	@GetMapping("/lines-for-or/{id}")
+	@GetMapping("/lines-for-pr/{id}")
 	public List<LineItem> getAllLineItemsByRequestId(@PathVariable int id) {
 		return lineItemRepo.findByRequestId(id);
 	}
 	
-	@Autowired
-	private RequestRepo requestRepo;
-	
 	// Recalculates the Requests total based on LineItem Add, Update or Delete
-	public void recalculateTotal(int lineItemId) {
-		Optional<LineItem> li = getById(lineItemId);
-		Request request = li.get().getRequest();
-		List<LineItem> lineItems = getAllLineItemsByRequestId(request.getId());
+	public void recalculateTotal(int requestId) {
+		Optional<Request> request = requestRepo.findById(requestId);
+		List<LineItem> lineItems = getAllLineItemsByRequestId(requestId);
 		
 		double total = 0.0;
 		for(LineItem lineItem : lineItems) {
-			int quantity = lineItem.getQuantity();
 			Product p = lineItem.getProduct();
-			total += (p.getPrice() * quantity);
+			total += (p.getPrice() * lineItem.getQuantity());
 		}
 		
-		request.setTotal(total);
-		requestRepo.save(request);
+		request.get().setTotal(total);
+		requestRepo.save(request.get());
 	}
 }
