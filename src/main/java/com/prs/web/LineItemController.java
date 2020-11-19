@@ -11,7 +11,6 @@ import com.prs.business.Request;
 import com.prs.business.Product;
 import com.prs.db.LineItemRepo;
 import com.prs.db.RequestRepo;
-import com.prs.db.ProductRepo;
 
 @CrossOrigin
 @RestController
@@ -23,9 +22,6 @@ public class LineItemController {
 	
 	@Autowired
 	private RequestRepo requestRepo;
-	
-	@Autowired
-	private ProductRepo productRepo;
 	
 	// Get all LineItems
 	@GetMapping("/")
@@ -42,12 +38,8 @@ public class LineItemController {
 	// Add a LineItem
 	@PostMapping("/")
 	public LineItem addLineItem(@RequestBody LineItem l) {
-		Optional<Request> r = requestRepo.findById(l.getRequest().getId());
-		Optional<Product> p = productRepo.findById(l.getProduct().getId());
-		l.setRequest(r.get());
-		l.setProduct(p.get());
 		l = lineItemRepo.save(l);
-		recalculateTotal(l.getRequest().getId());
+		recalculateTotal(l);
 		return l;
 	}
 	
@@ -55,7 +47,7 @@ public class LineItemController {
 	@PutMapping("/")
 	public LineItem updateLineItem(@RequestBody LineItem l) {
 		l = lineItemRepo.save(l);
-		recalculateTotal(l.getRequest().getId());
+		recalculateTotal(l);
 		return l;
 	}
 	
@@ -63,10 +55,10 @@ public class LineItemController {
 	@DeleteMapping("{id}")
 	public LineItem deleteLineItem(@PathVariable int id) {
 		Optional<LineItem> l = lineItemRepo.findById(id);
-		int requestId = l.get().getRequest().getId();
+
 		if (l.isPresent()) {
 			lineItemRepo.deleteById(id);
-			recalculateTotal(requestId);
+			recalculateTotal(l.get());
 		} else {
 			System.out.println("Error - line item not found for id " + id);
 		}
@@ -80,9 +72,8 @@ public class LineItemController {
 	}
 	
 	// Recalculates the Requests total based on LineItem Add, Update or Delete
-	public void recalculateTotal(int requestId) {
-		Optional<Request> request = requestRepo.findById(requestId);
-		List<LineItem> lineItems = getAllLineItemsByRequestId(requestId);
+	public void recalculateTotal(LineItem li) {	
+		List<LineItem> lineItems = lineItemRepo.findByRequestId(li.getRequest().getId());
 		
 		double total = 0.0;
 		for(LineItem lineItem : lineItems) {
@@ -90,7 +81,9 @@ public class LineItemController {
 			total += (p.getPrice() * lineItem.getQuantity());
 		}
 		
-		request.get().setTotal(total);
-		requestRepo.save(request.get());
+		Request request = li.getRequest();
+		request.setTotal(total);
+		requestRepo.save(request);
 	}
+	
 }
