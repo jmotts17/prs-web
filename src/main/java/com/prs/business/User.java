@@ -98,7 +98,7 @@ public class User {
 		return isReviewer;
 	}
 
-	public void setIsReviewer(boolean isReviewer) {
+	public void setReviewer(boolean isReviewer) {
 		this.isReviewer = isReviewer;
 	}
 
@@ -106,7 +106,7 @@ public class User {
 		return isAdmin;
 	}
 
-	public void setIsAdmin(boolean isAdmin) {
+	public void setAdmin(boolean isAdmin) {
 		this.isAdmin = isAdmin;
 	}
 	
